@@ -1,0 +1,210 @@
+---
+title: "class07: Clustering and PCA"
+author: "Jenny Zhou"
+format: pdf
+---
+
+# Clustering
+
+First let's make up some data to cluster, so we can get a feel for these methods.
+
+we can use `rnorm()` function to get random numbers froma normal distribution around a given mean.
+
+```{r}
+#generates a vector of normally distributed random numbers
+hist(rnorm(5000, mean = 4))
+```
+
+Let's get 30 points with a mean of 3 and another 30 points with a mean of -3. Combine two results into a vector.
+
+```{r}
+distrib <- c(rnorm(30, mean=3),rnorm(30, mean=-3))
+```
+
+Combine the vector and its reverse version into a matrix
+
+```{r}
+x <- cbind(distrib,rev(distrib))
+plot(x)
+```
+
+## k-means clustering
+
+very popular clustering method that we can use with the `kmeans()` function in base R.
+
+```{r}
+km <- kmeans(x,centers = 2)
+km
+```
+
+Look at the available components
+
+```{r}
+km$ifault
+
+```
+
+> Q. How many points are in each clusters?
+
+```{r}
+km$size
+```
+
+> Q. What 'component' of your result object details? - cluster size - cluster assignment/membership - cluster center
+
+```{r}
+km$size
+km$cluster
+km$centers
+```
+
+> Q. Plot x colored by the kmeans cluster assignment and add cluster centers as blue points
+
+```{r}
+plot(x, col=km$cluster)
+points(km$centers, col = 'blue', pch=19)
+```
+
+> Q Let's cluster into 3 groups or same `x` data and make a plot
+
+```{r}
+km2 <- kmeans(x, centers=3)
+km2
+km2$size
+```
+
+```{r}
+plot(x, col = km2$cluster)
+```
+
+How do we know what number of centers(clusters) are the best
+
+```{r}
+km2$totss
+```
+
+## Hierarchicalclustering
+
+We can use the `hclust()` function for hierarchical clustering unlike `kmeans()`, where we could just pass in our data as input, weneed to give `hclust()` a "distance matrix".
+
+We will use a `dist()` function to start with.
+
+```{r}
+d <-dist(x)
+hc <- hclust(d)
+hc
+```
+
+Generate dendrogram
+
+```{r}
+plot(hc)
+```
+
+I can now "cut" my tree with the `cutree()` to yield a cluster membership vector
+
+```{r}
+grps <- cutree(hc, h=8)
+grps
+
+plot(x, col=grps)
+```
+
+You can also tell `cutree()` to cut where it yields "k" groups
+
+```{r}
+cutree(hc, k=2)
+```
+
+
+
+# Principal Component Analysis (PCA)
+
+PCA of UK food data
+
+```{r}
+uk <- read.csv("https://tinyurl.com/UK-foods", row.names=1)
+uk
+```
+
+> Q1. How many rows and columns are in your new data frame named x? What R functions could you use to answer this questions?
+
+
+```{r}
+dim(uk)
+ncol(uk)
+nrow(uk)
+```
+
+Preview the first 6 rows
+```{r}
+head(uk)
+```
+
+> Q2. Which approach to solving the ‘row-names problem’ mentioned above do you prefer and why? Is one approach more robust than another under certain circumstances?
+
+Using the row.names argument of read.csv(). Using `-` to delete rows will affect the original code and delete one row every time I run the code.
+
+Generating a bar-plot for the data:
+```{r}
+barplot(as.matrix(uk), beside=T, col=rainbow(nrow(uk)))
+```
+
+
+
+> Q3: Changing what optional argument in the above barplot() function results in the following plot?
+
+change beside from T to F
+```{r}
+barplot(as.matrix(uk), beside=F, col=rainbow(nrow(uk)))
+```
+
+
+> Q5: Generating all pairwise plots may help somewhat. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot.
+
+`pairs()` produce a matrix of scatterplot. 
+```{r}
+pairs(uk, col=rainbow(17), pch=16)
+```
+
+Points lying on the diagonal means that the consumption of foods for two countries are similar.
+
+> Q6. What is the main differences between N. Ireland and the other countries of the UK in terms of this data-set?
+
+It has the most divergent values on the consumption of foods, as in the graphs it has least number of dots on the diagonal. 
+
+
+### Use PCA
+
+Use the `prcomp()` PCA function, it expect the transpose of our data.
+`t()` returns a transpose of data.frame (col becomes row, row becomes col).
+```{r}
+pca <- prcomp( t(uk) )
+summary(pca)
+```
+Proportion of variance means how much dimentional variance is captured by the axis PC1.
+
+Collectively PC1 and PC2 together capture 96% of the original 17 dimensional variance. Thus these first two new principal axis (PC1 and PC2) represent useful ways to view and further investigate our data set. 
+
+```{r}
+attributes(pca)
+```
+
+
+ > Q7. Complete the code below to generate a plot of PC1 vs PC2. The second line adds text labels over the data points.
+> Q8. Customize your plot so that the colors of the country names match the colors in our UK and Ireland map and table at start of this document.
+
+```{r}
+pca$x #stands for the position of each country on all the generated axis
+pca$x[,1] # stands for the position of each country on PC1
+pca$x[,2] # stands for the position of each country on PC2
+```
+
+```{r}
+plot(pca$x[,1],pca$x[,2], col=c("red", "orange", "green", "blue"), 
+     pch=1,
+     xlab = "PC1", ylab = "PC2")
+text(pca$x[,1], pca$x[,2], colnames(uk),
+     col=c("red", "orange", "green", "blue"))
+```
+ 
