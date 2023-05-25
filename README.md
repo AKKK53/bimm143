@@ -1,2 +1,3 @@
 # bimm143
-Bioinformatics class
+Bioinformatics class SP23 UCSD
+
