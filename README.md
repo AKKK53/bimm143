@@ -1,2 +1,2 @@
 # bimm143
-Bioinformatics class
+Bioinformatics class in SP23 at UC San Diego
