@@ -1,0 +1,138 @@
+---
+title: "Class 09: Structural Bioinformatics"
+author: "Jenny Zhou"
+format: pdf
+---
+
+# PDB statistics
+
+Download a CSV file from the PDB site (accessible from "Analyze" \> "PDB Statistics" \> "by Experimental Method and Molecular Type". Move this CSV file into your RStudio project and use it to answer the following questions:
+
+```{r}
+db <- read.csv("DataExportSummary.csv")
+db
+```
+
+> Q1: What percentage of structures in the PDB are solved by X-Ray and Electron Microscopy.
+
+```{r}
+#use x as input
+num <- function(x) {
+  #substitute comma, and convert to numeric
+  as.numeric(gsub(",", "", x))
+}
+
+#use x as input
+total <- function(x) {
+  #substitute comma in each element, convert them to numeric, and sum up the vector
+  sum(as.numeric(gsub(",", "", x)))
+}
+
+```
+
+```{r}
+sum(num(db$EM)) / sum(num(db$Total))
+
+sum(num(db$X.ray)) / sum(num(db$Total))
+```
+
+```{r}
+(sum(num(db$X.ray)) + sum(num(db$EM))) / sum(num(db$Total)) *100
+```
+
+```{r}
+round(( total(db$X.ray) + total(db$EM) ) / total(db$Total)*100,2)
+```
+
+totally 92.99% of structures in the PDB are solved by X-Ray and Electron Microscopy.
+
+> Q2: What proportion of structures in the PDB are protein?
+
+```{r}
+round (total(db$Total[1]) / total(db$Total) *100, 2)
+```
+
+86.81% of structures in the PDB are protein.
+
+> Q3: Type HIV in the PDB website search box on the home page and determine how many HIV-1 protease structures are in the current PDB?
+
+4926
+
+
+
+# Visualizing the HIV-1 protease structure
+
+> Q4: Water molecules normally have 3 atoms. Why do we see just one atom per water molecule in this structure?
+
+All hydrogen atoms are hidden because they are too small.
+
+> Q5: There is a critical "conserved" water molecule in the binding site. Can you identify this water molecule? What residue number does this water molecule have
+
+HOH 308
+
+> Q6: Generate and save a figure clearly showing the two distinct chains of HIV-protease along with the ligand. You might also consider showing the catalytic residues ASP 25 in each chain and the critical water (we recommend "Ball & Stick" for these side-chains). Add this figure to your Quarto document.
+
+![HIV protease structure from MERK with a bound drug](1HSG%20(1).png)
+
+> Discussion Topic: Can you think of a way in which indinavir, or even larger ligands and substrates, could enter the binding site?
+
+After the 'flaps' or 'arms' of protease open, larger substrate will be able to enter the binding site.
+
+
+# Introduction to Bio3D in R
+
+We can use the `bio3d` package to read and perform bioninformatics calculations on PDB structures.
+
+```{r}
+library(bio3d)
+
+pdb <- read.pdb("1hsg")
+
+pdb
+```
+
+```{r}
+attributes(pdb)
+pdb$helix
+```
+
+
+
+
+> Q7: How many amino acid residues are there in this pdb object?
+
+198 residues (99 residues in each chain)
+
+> Q8: Name one of the two non-protein residues?
+
+HOH (127), MK1 (1) 
+
+> Q9: How many protein chains are in this structure?
+
+2
+
+
+Read an ADK structure
+
+```{r}
+adk <- read.pdb("6s36")
+adk
+```
+### Predicting functional motions of a single structure
+
+Perform a prediction of flexibility with a technique called NMA (normal mode analysis)
+
+```{r}
+#Perform flexibility prediction
+m <- nma(adk)
+m
+plot(m)
+```
+
+Write out (create) a "movie" ("trajectory") of the motion for viewing in Molstar
+
+```{r}
+mktrj(m, file="adk_m7.pdb")
+```
+
+the created file (in our own computer) can be read in Molstar
