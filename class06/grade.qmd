@@ -1,0 +1,176 @@
+---
+title: "class06"
+author: "Jenny Zhou"
+format: pdf
+---
+
+Write a function to determine an overall grade from a vector of student homework assignment scores dropping the lowest single alignment score
+
+```{r}
+# student 1
+student1 <- c(100,100,100,100,100,100,100,90)
+# student 2
+student2 <- c(100,NA,90,90,90,90,97,80)
+#student 3
+student3 <- c(90, NA, NA, NA, NA, NA, NA, NA)
+
+
+```
+
+`mean()` to calculate average, `na.rm` can omit na values.
+
+```{r}
+mean(student2)
+mean(student2,na.rm=TRUE)
+```
+
+We cannot do it on student3 because student3 has too much NA.
+
+we can replace the missed assignment NA values with zero. `is.na()`function can help
+
+```{r}
+is.na(student2)
+which(is.na(student2))
+
+student2[is.na(student2)]
+student2[!is.na(student2)]
+```
+
+replace na to zero
+
+```{r}
+student2[is.na(student2)] <- 0
+```
+
+but this one modified the original vector
+
+it is time to work with new temp object (called`temp`) so I would not screw up my original objects
+
+```{r}
+temp <- student3
+temp[is.na(temp)] <- 0
+
+temp
+```
+
+Finally, we want to drop the lowest score before calculating the mean. This is equivalent to allowing the student to drop their worst assignment.
+
+```{r}
+min(temp)
+
+which.min(temp)
+
+#reverse selection
+mean(temp[-which.min(temp)])
+```
+
+Put this all back together make our working snippet:
+
+```{r}
+temp <- student3
+#Replace NA values to zero
+temp[is.na(temp)] <- 0
+#Exclude the lowest score; Calculate the mean
+mean(temp[-which.min(temp)])
+```
+
+Turn into a function called `grade()` Required 3 things: - **Name** of the function, in our case "grade" - **input argument** - **body**
+
+```{r}
+grade <- function(x) {
+  
+  # Replace NA values to zero
+  replaced_score <- replace(x,which(is.na(x)),0)
+  
+  #Exclude the lowest score; Calculate the mean
+  mean(replaced_score[-which.min(replaced_score)])
+}
+
+```
+
+```{r}
+grade01 <- function(x) {
+  
+  # Replace NA values to zero
+  x[is.na(x)] <- 0
+  
+  #Exclude the lowest score; Calculate the mean
+  mean(x[-which.min(x)])
+}
+```
+
+```{r}
+grade(student2)
+```
+
+Read a gradebook form online:
+
+```{r}
+hw <- read.csv("https://tinyurl.com/gradeinput", row.names = 1)
+hw
+```
+We can use the `apply()` function to grade all the students in this class with our new `grade()` function.
+
+The `apply()` function allows us to run any function over with rows or columns of a data.frame.
+```{r}
+ans <- apply(hw, 1, grade01)
+ans
+```
+
+> Q2: Using your grade() function and the supplied gradebook, Who is the top scoring student overall in the gradebook?
+
+```{r}
+ans [which.max(ans)]
+```
+
+>Q3: From your analysis of the gradebook, which homework was toughest on students (i.e. obtained the lowest scores overall?
+
+```{r}
+hw_ans1 <- apply(hw, 2, mean, na.rm=TRUE)
+hw_ans1
+
+hw_ans1[which.min(hw_ans1)]
+```
+
+```{r}
+hw_ans2 <- apply(hw, 2, sum, na.rm=TRUE)
+hw_ans2
+
+hw_ans2[which.min(hw_ans2)]
+```
+
+> Q4. Optional Extension: From your analysis of the gradebook, which homework was most predictive of overall score (i.e. highest correlation with average grade score)? 
+
+```{r}
+cor(hw$hw1, ans)
+cor(hw$hw2, ans)
+```
+
+If I try on hw2, I get NA on missing homeworks. I want to mask all na values to zero.
+```{r}
+mask <- hw
+mask[is.na(mask)] <- 0
+mask
+```
+
+try:
+```{r}
+correlation <- cor(mask[1:5], ans)
+correlation
+```
+
+```{r}
+which.max(correlation)
+correlation[which.max(correlation)]
+```
+
+
+we can use `apply()` function here on the columns of hw
+```{r}
+correlation2 <- apply(mask,2,cor, y=ans)
+correlation2
+
+correlation2[which.max(correlation2)]
+
+```
+

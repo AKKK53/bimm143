@@ -1,0 +1,38 @@
+---
+title: "Analysis of protein drug interactions"
+author: "Jenny Zhou"
+date: "2023-04-25"
+output: pdf_document
+---
+
+B-factor means "the attenuation of x-ray scattering or coherent neutron scattering caused by thermal motion".
+
+Reference: <https://en.wikipedia.org/wiki/Debye%E2%80%93Waller_factor>
+
+This function is used to plot the value of B-factors of C-alpha atoms in the chain A of a specific protein.
+
+```{r}
+#Loading the bio3d package before executing function
+library(bio3d)
+
+#Input of the function is the accession number (in the form of character) of protein on RCSB PDB
+plot_bfactor <- function(x) {
+  
+  #Read pdb file from online database
+  read <- read.pdb(x)
+  
+  #Select chainA dataset from the pdb file and select atom type to be C-alpha atoms found in protein residues
+  chainA <- trim.pdb(read, chain="A", elety="CA")
+  
+  #Plot the value of B-factors of C-alpha atoms against their protein residues
+  plotb3(chainA$atom$b, sse=chainA, typ="l", ylab="Bfactor")
+}
+```
+
+example:
+
+```{r}
+#the input protein is MLK1 kinase domain with leucine zipper 1
+library(bio3d)
+plot_bfactor("4UY9")
+```
