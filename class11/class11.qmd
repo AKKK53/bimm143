@@ -1,0 +1,86 @@
+---
+title: "class 11"
+author: "Jenny Zhou"
+format: pdf
+---
+
+## Identify genetic variants of interest
+
+
+> Q5: What proportion of the Mexican Ancestry in Los Angeles sample population (MXL) are homozygous for the asthma associated SNP (G|G)?
+
+```{r}
+MXL <- read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+head(MXL)
+```
+
+```{r}
+table(MXL$Genotype..forward.strand.)/ nrow(MXL) *100
+```
+
+Now let's look at a different population (British in England and Scotland)
+
+```{r}
+GBR <- read.csv("373522-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+head(GBR)
+```
+
+```{r}
+signif(table(GBR$Genotype..forward.strand.)/ nrow(GBR) *100,3)
+```
+
+
+This variation that is associated with childhood asthma is more frequent the GBR population than the MKL population.
+
+Lets now dig into this further.
+
+
+
+## Population Scale Analysis
+
+Determine whether there is any association of the 4 asthma-associated SNPs (rs8067378…) on **ORMDL3** expression.
+
+> Q13: Read this file into R and determine the sample size for each genotype and their corresponding median expression levels for each of these genotypes.
+
+
+```{r}
+expr <- read.table("rs8067378_ENSG00000172057.6.txt")
+head(expr)
+```
+
+```{r}
+table(expr$geno)
+```
+```{r}
+exp.med <- function(x) {
+  # select one specific genotype
+  which.geno <- expr$geno == x
+  
+  #filter the expression levels for that genotype
+  exps <- expr$exp[which.geno]
+  #calculate medium of filted expression levels, with 2 decimal points.
+  round(median(exps), 2)
+}
+```
+
+```{r}
+exp.med("G/G")
+exp.med("A/A")
+exp.med("A/G")
+```
+The median expression level for G/G genotype is 20.07. The median expression level for A/A genotype is 31.25. The median expression level for A/G genotype is 25.06.
+
+
+> Q14: Generate a boxplot with a box per genotype, what could you infer from the relative expression value between A/A and G/G displayed in this plot? Does the SNP effect the
+expression of ORMDL3?
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+ggplot(expr) + aes(geno, exp, fill = geno) + 
+  geom_boxplot(notch=TRUE)
+```
+
+SNP effects the expression of ORMDL3. According to the boxplot, comparing to A/A genotype, G/G genotype leads to a lower expression of ORMDL3 by an around 1/3 fold. ORMDL3 expression with a A/G genotype is between that of A/A and G/G.
